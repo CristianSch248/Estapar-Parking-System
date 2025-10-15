@@ -1,0 +1,18 @@
+server:
+  port: 3003
+spring:
+  application:
+    name:
+      parking-system
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: ### url do seu banco de dados
+    username: ### usuario do banco de dados
+    password: ### senha do banco de dados
+  jpa:
+    hibernate:
+      ddl-auto: none
+    properties:
+      hibernate:
+    show-sql: false
+    open-in-view: false
