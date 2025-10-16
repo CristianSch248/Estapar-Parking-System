@@ -2,21 +2,29 @@ package br.com.estapar.parking.controller;
 
 import br.com.estapar.parking.DTO.ParkingSessionDTO;
 import br.com.estapar.parking.service.ParkingSessionService;
+import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+@Validated
 @RestController
-@RequestMapping( "/webhookcris" )
+@RequestMapping( "/webhook" )
 public class ParkingSessionController
 {
     @Autowired
     private ParkingSessionService parkingSessionService;
 
-    @PostMapping
+    @Operation(
+            summary = "Recebe eventos do simulador (ENTRY, PARKED, EXIT)",
+            description = "ENTRY exige license_plate e entry_time; PARKED exige license_plate, lat e lng; EXIT exige license_plate e exit_time. Sempre responde 200 OK."
+    )
+    @PostMapping( consumes = MediaType.APPLICATION_JSON_VALUE )
     public ResponseEntity< Void > parkingSessionEvent( @RequestBody ParkingSessionDTO parkingSessionDTO )
     {
         try
@@ -29,16 +37,17 @@ public class ParkingSessionController
 
             switch ( parkingSessionDTO.event_type().toUpperCase() )
             {
-                case "ENTRY"  -> parkingSessionService.createEntrySession( parkingSessionDTO );
+                case "ENTRY" -> parkingSessionService.createEntrySession( parkingSessionDTO );
                 case "PARKED" -> parkingSessionService.updateSessionWithParkingSpot( parkingSessionDTO );
-                case "EXIT"   -> parkingSessionService.closeParkingSession( parkingSessionDTO );
+                case "EXIT" -> parkingSessionService.closeParkingSession( parkingSessionDTO );
+                default -> throw new IllegalStateException( "Evento Invalido!" );
             }
         }
 
         catch ( RuntimeException e )
         {
-            System.err.println( "Erro ao processar evento: " + e.getMessage() );
             e.printStackTrace();
+            throw new IllegalStateException( "Erro ao processar evento: " + e.getMessage() );
         }
 
         return ResponseEntity.ok().build();

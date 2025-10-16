@@ -6,9 +6,9 @@ spring:
       parking-system
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: ### url do seu banco de dados
-    username: ### usuario do banco de dados
-    password: ### senha do banco de dados
+    url: jdbc:mysql://localhost:3306/parking_system
+    username: root
+    password: 1234
   jpa:
     hibernate:
       ddl-auto: none

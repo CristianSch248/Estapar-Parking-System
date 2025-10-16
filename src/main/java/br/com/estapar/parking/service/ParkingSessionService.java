@@ -21,6 +21,7 @@ import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class ParkingSessionService
@@ -133,18 +134,21 @@ public class ParkingSessionService
 
         GarageSpot oldSpot = garageSpotRepository.findGarageSpotById( newParkingSession.getSpot().getId() );
 
-        GarageSpot newSpot = garageSpotRepository.getGarageSpotByLatAndLngOccupiedFalse( parkingSessionDTO.lat(), parkingSessionDTO.lng() );
-        if ( newSpot == null )
+        Optional <GarageSpot> newSpot = garageSpotRepository.findByLatAndLngAndOccupiedFalse( parkingSessionDTO.lat(), parkingSessionDTO.lng() );
+
+        if ( ! newSpot.isPresent() )
         {
             throw new IllegalStateException( "vaga ocupada ou não encontrada." );
         }
+         GarageSpot garageSpot = newSpot.get();
 
-        newSpot = reserveSpot( newSpot );
+
+        garageSpot = reserveSpot( garageSpot );
 
         removeReserveSpot( oldSpot );
 
-        newParkingSession.setSpot( newSpot );
-        newParkingSession.setSector( newSpot.getSector().getSector() );
+        newParkingSession.setSpot( garageSpot );
+        newParkingSession.setSector( garageSpot.getSector().getSector() );
         newParkingSession.setStatus( "PARKED" );
 
         return parkingSessionRepository.save( newParkingSession );
@@ -226,7 +230,7 @@ public class ParkingSessionService
     private GarageSpot reserveOneSpot( Integer sectorId )
     {
         PageRequest        pageRequest    = PageRequest.of( 0, 1 );
-        List< GarageSpot > listGarageSpot = garageSpotRepository.findFreeSpotsForUpdate( sectorId, pageRequest );
+        List< GarageSpot > listGarageSpot = garageSpotRepository.findBySector_IdAndOccupiedFalse(sectorId, pageRequest);
 
         if ( listGarageSpot.isEmpty() )
         {

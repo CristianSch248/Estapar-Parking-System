@@ -1,16 +1,32 @@
 package br.com.estapar.parking.service;
 
 import br.com.estapar.parking.DTO.GarageSectorDTO;
+import br.com.estapar.parking.DTO.RevenueQuery;
+import br.com.estapar.parking.DTO.RevenueResponseDTO;
 import br.com.estapar.parking.model.GarageSector;
+import br.com.estapar.parking.model.GarageSpot;
+import br.com.estapar.parking.model.ParkingSession;
 import br.com.estapar.parking.repository.GarageSectorRepository;
+import br.com.estapar.parking.repository.GarageSpotRepository;
+import br.com.estapar.parking.repository.ParkingSessionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.math.BigDecimal;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
 @Service
 public class GarageSectorService
 {
     @Autowired
     private GarageSectorRepository garageSectorRepository;
+
+    @Autowired
+    private ParkingSessionRepository parkingSessionRepository;
 
     public void createGarageSector( GarageSectorDTO garageSectorDTO )
     {
@@ -32,6 +48,24 @@ public class GarageSectorService
 
         garageSectorRepository.save( newGarageSector );
 
-        System.out.println(" Novo setor '" + newGarageSector.getSector() + "' salvo com sucesso!");
+        System.out.println( " Novo setor '" + newGarageSector.getSector() + "' salvo com sucesso!" );
+    }
+
+    public RevenueResponseDTO getRevenue( RevenueQuery query )
+    {
+        ZoneId  zone = ZoneId.of( "America/Sao_Paulo" ); // evite systemDefault() para não variar
+        Instant from = query.date().atStartOfDay( zone ).toInstant();
+
+        List< ParkingSession > parkingSessionList = parkingSessionRepository.findAllBySpot_Sector_SectorAndEntryTimeGreaterThanEqual( query.sector(), from );
+
+        BigDecimal amount = BigDecimal.ZERO;
+
+        for ( ParkingSession parkingSession : parkingSessionList )
+        {
+            BigDecimal value = Objects.requireNonNullElse( parkingSession.getTotalAmount(), BigDecimal.ZERO );
+            amount = amount.add( value );
+        }
+
+        return new RevenueResponseDTO( amount, "BRL", from );
     }
 }
