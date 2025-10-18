@@ -3,6 +3,7 @@ package br.com.estapar.parking.service;
 import br.com.estapar.parking.DTO.GarageSectorDTO;
 import br.com.estapar.parking.DTO.RevenueQuery;
 import br.com.estapar.parking.DTO.RevenueResponseDTO;
+import br.com.estapar.parking.logging.SimpleConsoleLogger;
 import br.com.estapar.parking.model.GarageSector;
 import br.com.estapar.parking.model.GarageSpot;
 import br.com.estapar.parking.model.ParkingSession;
@@ -30,10 +31,13 @@ public class GarageSectorService
 
     public void createGarageSector( GarageSectorDTO garageSectorDTO )
     {
-        // Verifica se já existe um setor com o mesmo nome
         if ( garageSectorRepository.findBySector( garageSectorDTO.sector() ).isPresent() )
         {
-            System.out.println( "⚠️  Setor '" + garageSectorDTO.sector() + "' já existe. Ignorando inserção duplicada." );
+            SimpleConsoleLogger.info(
+                    "SETOR [ '" +
+                    garageSectorDTO.sector() +
+                    "' ]. Já existe ignorando inserção duplicada."
+            );
             return;
         }
 
@@ -48,12 +52,12 @@ public class GarageSectorService
 
         garageSectorRepository.save( newGarageSector );
 
-        System.out.println( " Novo setor '" + newGarageSector.getSector() + "' salvo com sucesso!" );
+        SimpleConsoleLogger.info( " Novo setor '" + newGarageSector.getSector() + "' salvo com sucesso!" );
     }
 
     public RevenueResponseDTO getRevenue( RevenueQuery query )
     {
-        ZoneId  zone = ZoneId.of( "America/Sao_Paulo" ); // evite systemDefault() para não variar
+        ZoneId  zone = ZoneId.of( "America/Sao_Paulo" );
         Instant from = query.date().atStartOfDay( zone ).toInstant();
 
         List< ParkingSession > parkingSessionList = parkingSessionRepository.findAllBySpot_Sector_SectorAndEntryTimeGreaterThanEqual( query.sector(), from );

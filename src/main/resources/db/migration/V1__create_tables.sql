@@ -45,5 +45,5 @@ CREATE TABLE incoming_events (
      event_type VARCHAR(10) NOT NULL,
      license_plate VARCHAR(10) NOT NULL,
      event_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-     raw_payload JSON NOT NULL
+     raw_payload TEXT NOT NULL
 ) ENGINE=InnoDB;

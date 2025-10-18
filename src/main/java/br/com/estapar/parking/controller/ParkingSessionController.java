@@ -1,9 +1,10 @@
 package br.com.estapar.parking.controller;
 
 import br.com.estapar.parking.DTO.ParkingSessionDTO;
+import br.com.estapar.parking.logging.SimpleConsoleLogger;
+import br.com.estapar.parking.service.IncomingEventService;
 import br.com.estapar.parking.service.ParkingSessionService;
 import io.swagger.v3.oas.annotations.Operation;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -17,8 +18,14 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping( "/webhook" )
 public class ParkingSessionController
 {
-    @Autowired
     private ParkingSessionService parkingSessionService;
+    private IncomingEventService incomingEventService;
+
+    public ParkingSessionController( ParkingSessionService parkingSessionService, IncomingEventService incomingEventService )
+    {
+        this.parkingSessionService = parkingSessionService;
+        this.incomingEventService = incomingEventService;
+    }
 
     @Operation(
             summary = "Recebe eventos do simulador (ENTRY, PARKED, EXIT)",
@@ -31,9 +38,11 @@ public class ParkingSessionController
         {
             if ( parkingSessionDTO.event_type() == null )
             {
-                System.out.println( "Evento sem tipo recebido: " + parkingSessionDTO );
+                SimpleConsoleLogger.info( "Evento sem tipo recebido: " + parkingSessionDTO  );
                 return ResponseEntity.ok().build();
             }
+
+            incomingEventService.createLogIncomingEvent( parkingSessionDTO );
 
             switch ( parkingSessionDTO.event_type().toUpperCase() )
             {
@@ -46,8 +55,7 @@ public class ParkingSessionController
 
         catch ( RuntimeException e )
         {
-            e.printStackTrace();
-            throw new IllegalStateException( "Erro ao processar evento: " + e.getMessage() );
+            SimpleConsoleLogger.warn( "Erro ao processar evento: " + e.getMessage()  );
         }
 
         return ResponseEntity.ok().build();

@@ -13,7 +13,7 @@ public interface GarageSpotRepository extends JpaRepository< GarageSpot, Integer
 {
     List<GarageSpot> findBySectorAndOccupiedFalse(GarageSector sector);
 
-    List<GarageSpot> findBySector_IdAndOccupiedFalse(Integer sectorId, Pageable pageable);
+    GarageSpot findFirstBySector_IdAndOccupiedFalseOrderByIdAsc( Integer sectorId );
 
     GarageSpot findGarageSpotById( Integer id );
 
