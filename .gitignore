@@ -46,3 +46,4 @@ target/
 *.ipr
 
 *.yml
+*.yaml
