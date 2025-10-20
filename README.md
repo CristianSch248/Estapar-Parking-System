@@ -109,10 +109,6 @@ O Flyway executa as migrações automaticamente.
 - Swagger UI: `http://localhost:3003/swagger-ui/index.html`
 - OpenAPI JSON: `http://localhost:3003/v3/api-docs`
 
-Rodar:
-```bash
-mvn test
-```
 ## Checklist do Desafio
 
 - [x] Java 21 / Spring Boot 3.5
