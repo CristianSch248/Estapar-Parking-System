@@ -11,7 +11,6 @@ Sistema backend para gerenciar um estacionamento (setores, vagas e sessões de e
 - [Configuração](#configuração)
 - [Migrações (Flyway)](#migrações-flyway)
 - [Swagger / OpenAPI](#swagger--openapi)
-- [Testes](#testes)
 - [Checklist do Desafio](#checklist-do-desafio)
 
 ---
@@ -110,11 +109,6 @@ O Flyway executa as migrações automaticamente.
 - Swagger UI: `http://localhost:3003/swagger-ui/index.html`
 - OpenAPI JSON: `http://localhost:3003/v3/api-docs`
 
-## Testes
-
-- **Unitários** com `spring-boot-starter-test` (JUnit 5)
-- (Opcional) **Testcontainers** para integração com MySQL em Docker
-
 Rodar:
 ```bash
 mvn test
@@ -129,4 +123,3 @@ mvn test
 - [x] Sincronização `GET /garage` na inicialização
 - [x] Regras: 30 min grátis, ceil/hora, preço dinâmico, lotação
 - [x] Swagger/OpenAPI
-- [x] Testes básicos
