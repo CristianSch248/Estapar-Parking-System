@@ -27,7 +27,6 @@ public class ParkingSystemApplication implements CommandLineRunner
         SpringApplication.run( ParkingSystemApplication.class, args );
     }
 
-
     @Override
     public void run( String... args )
     {

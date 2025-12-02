@@ -7,14 +7,15 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-public class OpenApiConfig {
+public class OpenApiConfig
+{
     @Bean
-    public OpenAPI customOpenAPI() {
-        return new OpenAPI()
-                .info(new Info()
-                        .title("Estapar Parking API")
-                        .version("v1")
-                        .description("API do desafio: faturamento, eventos de estacionamento e configuração da garagem.")
-                        .contact(new Contact().name("Cristian").email("cristianschmitzhaus2000@gmail.com")));
+    public OpenAPI customOpenAPI()
+    {
+        return new OpenAPI().info( new Info().title( "Estapar Parking System API" )
+                                             .version( "v1" )
+                                             .description( "API do desafio: faturamento, eventos de estacionamento e configuração da garagem." )
+                                             .contact( new Contact().name( "Cristian" )
+                                                                    .email( "cristianschmitzhaus2000@gmail.com" ) ) );
     }
 }

@@ -212,21 +212,17 @@ public class ParkingSessionService
 
     private BigDecimal dynamicFactor( BigDecimal percentageOccupied )
     {
-        int compareTo25 = percentageOccupied.compareTo( BigDecimal.valueOf( 25 ) );
-        int compareTo50 = percentageOccupied.compareTo( BigDecimal.valueOf( 50 ) );
-        int compareTo75 = percentageOccupied.compareTo( BigDecimal.valueOf( 75 ) );
-
-        if ( compareTo25 < 0 )
+        if ( percentageOccupied.compareTo( BigDecimal.valueOf( 25 ) ) < 0 )
         {
             return BigDecimal.valueOf( 0.90 ); // < 25%
         }
 
-        else if ( compareTo50 <= 0 )
+        else if ( percentageOccupied.compareTo( BigDecimal.valueOf( 50 ) ) <= 0 )
         {
             return BigDecimal.valueOf( 1.00 ); // 25%..50%
         }
 
-        else if ( compareTo75 <= 0 )
+        else if ( percentageOccupied.compareTo( BigDecimal.valueOf( 75 ) ) <= 0 )
         {
             return BigDecimal.valueOf( 1.10 ); // 50%..75%
         }
