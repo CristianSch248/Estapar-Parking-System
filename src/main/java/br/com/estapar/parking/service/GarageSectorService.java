@@ -5,10 +5,8 @@ import br.com.estapar.parking.DTO.RevenueQuery;
 import br.com.estapar.parking.DTO.RevenueResponseDTO;
 import br.com.estapar.parking.logging.SimpleConsoleLogger;
 import br.com.estapar.parking.model.GarageSector;
-import br.com.estapar.parking.model.GarageSpot;
 import br.com.estapar.parking.model.ParkingSession;
 import br.com.estapar.parking.repository.GarageSectorRepository;
-import br.com.estapar.parking.repository.GarageSpotRepository;
 import br.com.estapar.parking.repository.ParkingSessionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -18,7 +16,6 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 
 @Service
 public class GarageSectorService

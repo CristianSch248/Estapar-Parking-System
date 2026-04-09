@@ -16,7 +16,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Instant;
 import java.time.LocalTime;
-import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
@@ -36,65 +36,48 @@ public class ParkingSessionService
     @Autowired
     private GarageSpotService garageSpotService;
 
-    @Transactional
     public void createEntrySession( ParkingSessionDTO parkingSessionDTO )
     {
         if ( parkingSessionRepository.existsByLicensePlateAndStatusIn( parkingSessionDTO.license_plate(), List.of( "ENTRY", "PARKED" ) ) )
         {
-            SimpleConsoleLogger.info( "Já existe sessão ABERTA para esta placa."  );
+            SimpleConsoleLogger.info( "Já existe sessão ABERTA para esta placa." );
             return;
         }
 
         Instant   entryTime = parkingSessionDTO.entry_time();
-        LocalTime localTime = entryTime.atZone( ZoneId.systemDefault() ).toLocalTime();
+        LocalTime localTime = entryTime.atOffset( ZoneOffset.UTC ).toLocalTime();
+        Optional<GarageSpot> spotOpt = garageSpotRepository.findFirstAvailableSpotInOpenSector( localTime );
 
-        GarageSector garageSectorSelected = null;
-        GarageSpot   reservedSpot         = null;
+        GarageSpot reservedSpot = null;
 
-        List< GarageSector > sectors = garageSectorRepository.findAll();
-
-        for ( GarageSector sector : sectors )
+        if ( spotOpt.isPresent() )
         {
-            if ( localTime.isBefore( sector.getOpenHour() ) || localTime.isAfter( sector.getCloseHour() ) )
-            {
-                SimpleConsoleLogger.warn( "Setor [ " +  sector.getSector() + " ] NÃO está aberto nesse horário." );
-                continue;
-            }
-
-            reservedSpot = garageSpotService.reserveOneSpot( sector.getId() );
-
-            if ( reservedSpot != null )
-            {
-                garageSectorSelected = sector;
-                break;
-            }
-        }
-
-        if ( garageSectorSelected == null )
-        {
-            SimpleConsoleLogger.warn( "Nenhum setor aberto nesse horário."  );
-            return;
+            GarageSpot spot = spotOpt.get();
+            spot.setOccupied( true );
+            reservedSpot = garageSpotRepository.save( spot );
         }
 
         if ( reservedSpot == null )
         {
-            SimpleConsoleLogger.warn( "As garagens estão lotadas" );
+            SimpleConsoleLogger.warn( "Nenhuma vaga disponível." );
             return;
         }
+
+        GarageSector sector = reservedSpot.getSector();
 
         ParkingSession session = new ParkingSession();
         session.setLicensePlate( parkingSessionDTO.license_plate() );
         session.setEntryTime( entryTime );
         session.setExitTime( null );
-        session.setSector( garageSectorSelected.getSector() );
+        session.setSector( sector.getSector() );
         session.setSpot( reservedSpot );
-        session.setPricePerHour( obtainPricePerHour( garageSectorSelected ) );
+        session.setPricePerHour( obtainPricePerHour( sector ) );
         session.setTotalAmount( null );
         session.setStatus( parkingSessionDTO.event_type() );
 
         parkingSessionRepository.save( session );
 
-        SimpleConsoleLogger.info( "Sessão CRIADA com sucesso!"  );
+        SimpleConsoleLogger.info( "Sessão CRIADA com sucesso!" );
     }
 
     @Transactional
@@ -147,13 +130,14 @@ public class ParkingSessionService
 
         if ( exitTime.isBefore( session.getEntryTime() ) )
         {
-           SimpleConsoleLogger.warn( "MOMENTO de SAÍDA não pode ser antes do MOMENTO de ENTRADA" );
+            SimpleConsoleLogger.warn( "MOMENTO de SAÍDA não pode ser antes do MOMENTO de ENTRADA" );
             return;
         }
 
         long minutes = ChronoUnit.MINUTES.between( session.getEntryTime(), exitTime );
 
         BigDecimal totalAmount;
+
         if ( minutes <= 30 )
         {
             totalAmount = BigDecimal.ZERO.setScale( 2, RoundingMode.HALF_UP );
@@ -205,28 +189,24 @@ public class ParkingSessionService
                           .divide( BigDecimal.valueOf( totalSpots ), 2, RoundingMode.HALF_UP );
 
         BigDecimal basePrice = BigDecimal.valueOf( garageSectorSelected.getBasePrice() );
-        BigDecimal fator     = dynamicFactor( occupancyPercentage  );
+        BigDecimal factor    = dynamicFactor( occupancyPercentage  );
 
-        return basePrice.multiply( fator ).setScale( 2, RoundingMode.HALF_UP );
+        return basePrice.multiply(factor).setScale( 2, RoundingMode.HALF_UP );
     }
 
-    private BigDecimal dynamicFactor( BigDecimal percentageOccupied )
+    public BigDecimal dynamicFactor( BigDecimal percentageOccupied )
     {
-        int compareTo25 = percentageOccupied.compareTo( BigDecimal.valueOf( 25 ) );
-        int compareTo50 = percentageOccupied.compareTo( BigDecimal.valueOf( 50 ) );
-        int compareTo75 = percentageOccupied.compareTo( BigDecimal.valueOf( 75 ) );
-
-        if ( compareTo25 < 0 )
+        if ( percentageOccupied.compareTo( BigDecimal.valueOf( 25 ) ) < 0 )
         {
             return BigDecimal.valueOf( 0.90 ); // < 25%
         }
 
-        else if ( compareTo50 <= 0 )
+        else if ( percentageOccupied.compareTo( BigDecimal.valueOf( 50 ) ) <= 0 )
         {
             return BigDecimal.valueOf( 1.00 ); // 25%..50%
         }
 
-        else if ( compareTo75 <= 0 )
+        else if ( percentageOccupied.compareTo( BigDecimal.valueOf( 75 ) ) <= 0 )
         {
             return BigDecimal.valueOf( 1.10 ); // 50%..75%
         }

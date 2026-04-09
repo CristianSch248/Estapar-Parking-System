@@ -46,21 +46,6 @@ public class GarageSpotService
         SimpleConsoleLogger.info( "Novo setor '" + newGarageSpot.getSector().getSector() + "' salvo com sucesso!"  );
     }
 
-    public GarageSpot reserveOneSpot( Integer sectorId )
-    {
-        GarageSpot GarageSpot = garageSpotRepository.findFirstBySector_IdAndOccupiedFalseOrderByIdAsc( sectorId );
-
-        if ( GarageSpot == null )
-        {
-            SimpleConsoleLogger.info( "Nenhuma VAGA Livre disponível"  );
-            return null;
-        }
-
-        GarageSpot.setOccupied( true );
-
-        return garageSpotRepository.save( GarageSpot );
-    }
-
     public GarageSpot reserveSpot( GarageSpot garageSpot )
     {
         GarageSpot newGarageSpot = garageSpotRepository.findGarageSpotById( garageSpot.getId() );

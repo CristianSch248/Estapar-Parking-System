@@ -3,7 +3,6 @@ package br.com.estapar.parking.model;
 import jakarta.persistence.*;
 
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.math.BigDecimal;
 
 @Entity

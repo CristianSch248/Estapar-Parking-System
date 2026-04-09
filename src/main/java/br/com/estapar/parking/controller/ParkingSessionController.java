@@ -8,10 +8,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @Validated
 @RestController
@@ -29,7 +26,9 @@ public class ParkingSessionController
 
     @Operation(
             summary = "Recebe eventos do simulador (ENTRY, PARKED, EXIT)",
-            description = "ENTRY exige license_plate e entry_time; PARKED exige license_plate, lat e lng; EXIT exige license_plate e exit_time. Sempre responde 200 OK."
+            description = "ENTRY exige license_plate e entry_time;<br>" +
+                    "PARKED exige license_plate, lat e lng;<br>" +
+                    "EXIT exige license_plate e exit_time. Sempre responde 200 OK."
     )
     @PostMapping( consumes = MediaType.APPLICATION_JSON_VALUE )
     public ResponseEntity< Void > parkingSessionEvent( @RequestBody ParkingSessionDTO parkingSessionDTO )

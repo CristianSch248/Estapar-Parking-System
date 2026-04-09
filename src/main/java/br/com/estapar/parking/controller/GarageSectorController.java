@@ -25,26 +25,17 @@ public class GarageSectorController
     private GarageSectorService garageSectorService;
 
     /**
-     * Como o enunciado não deixava claro onde viriam date e sector (query, path, body, form…), tratei isso como um “desafio de UX da API”.
-     * Para evitar surpresas em execução/avaliação, implementei um endpoint resiliente em GET /revenue que:
+     * O enunciado não especificava como date e sector chegariam (query, path, body…),
+     * então decidi fazer um endpoint que aceita os três.
      *
-     * aceita query params (forma recomendada),
+     * A prioridade na hora de resolver os valores é: body → query param → path param.
+     * Quem consome a API escolhe como enviar — os três exemplos abaixo funcionam:
      *
-     * tolera path param para sector,
-     *
-     * e ainda entende um body JSON opcional (caso algum cliente insista nisso).
-     *
-     * No handler, eu normalizo as entradas (prioridade: body → query → path) e sigo com o cálculo.
-     * Assim, a API fica à prova de ambiguidades do enunciado e quem consome decide como enviar — sem fricção.
+     *   GET /revenue?date=2025-01-01&sector=A        <- recomendado
+     *   GET /revenue/A?date=2025-01-01               <- path + query
+     *   GET /revenue  { "date": "2025-01-01", "sector": "A" }  <- body JSON
      */
-
-    /**
-     * Suporta:
-     * - GET /revenue?date=2025-01-01&sector=A          (recomendado)
-     * - GET /revenue/A?date=2025-01-01                  (path + query)
-     * - GET /revenue  (com body JSON {"date":"...","sector":"A"})  *não comum, mas aceito*
-     */
-    @Operation( summary = "Consulta faturamento por setor e data", description = "Torna o endpoint tolerante à forma de envio (query, path ou body JSON opcional)." )
+    @Operation( summary = "Consulta faturamento por setor e data" )
     @GetMapping( value = { "", "/{sectorPath}" }, produces = MediaType.APPLICATION_JSON_VALUE )
     public ResponseEntity< RevenueResponseDTO > getRevenue(
             // Query params
